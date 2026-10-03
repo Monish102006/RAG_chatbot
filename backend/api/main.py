@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from backend.rag.rag_pipeline import answer_question
+from backend.rag.rag_pipeline import answer_question_with_sources
 
 
 app = FastAPI(title="PDF RAG Chatbot")
@@ -23,14 +23,18 @@ class QuestionRequest(BaseModel):
 
 @app.get("/")
 def root():
-    return {"message": "PDF RAG Chatbot API is running"}
+    return {
+        "message": "PDF RAG Chatbot API is running"
+    }
 
 
 @app.post("/ask")
 def ask_question(request: QuestionRequest):
-    answer = answer_question(request.question)
+
+    result = answer_question_with_sources(request.question)
 
     return {
         "question": request.question,
-        "answer": answer
+        "answer": result["answer"],
+        "sources": result["sources"]
     }

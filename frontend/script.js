@@ -3,7 +3,7 @@ const askButton = document.getElementById("askButton");
 const chatBox = document.getElementById("chatBox");
 
 
-function addMessage(message, type) {
+function addMessage(message, type, sources = []) {
 
     const messageDiv = document.createElement("div");
     messageDiv.className = `message ${type}`;
@@ -11,7 +11,37 @@ function addMessage(message, type) {
     const contentDiv = document.createElement("div");
     contentDiv.className = "message-content";
 
-    contentDiv.textContent = message;
+    const textDiv = document.createElement("div");
+    textDiv.textContent = message;
+
+    contentDiv.appendChild(textDiv);
+
+
+    if (sources.length > 0) {
+
+        const sourcesDiv = document.createElement("div");
+        sourcesDiv.className = "sources";
+
+        const title = document.createElement("strong");
+        title.textContent = "Sources";
+
+        sourcesDiv.appendChild(title);
+
+
+        sources.forEach(source => {
+
+            const sourceItem = document.createElement("div");
+
+            sourceItem.textContent =
+                `📄 ${source.source} — Page ${source.page}`;
+
+            sourcesDiv.appendChild(sourceItem);
+        });
+
+
+        contentDiv.appendChild(sourcesDiv);
+    }
+
 
     messageDiv.appendChild(contentDiv);
     chatBox.appendChild(messageDiv);
@@ -31,22 +61,27 @@ async function askQuestion() {
     addMessage(question, "user");
 
     questionInput.value = "";
+
     askButton.disabled = true;
     askButton.textContent = "Asking...";
 
+
     try {
 
-        const response = await fetch("http://127.0.0.1:8000/ask", {
-            method: "POST",
+        const response = await fetch(
+            "http://127.0.0.1:8000/ask",
+            {
+                method: "POST",
 
-            headers: {
-                "Content-Type": "application/json"
-            },
+                headers: {
+                    "Content-Type": "application/json"
+                },
 
-            body: JSON.stringify({
-                question: question
-            })
-        });
+                body: JSON.stringify({
+                    question: question
+                })
+            }
+        );
 
 
         if (!response.ok) {
@@ -56,16 +91,21 @@ async function askQuestion() {
 
         const data = await response.json();
 
-        addMessage(data.answer, "bot");
+        addMessage(
+            data.answer,
+            "bot",
+            data.sources
+        );
+
 
     } catch (error) {
+
+        console.error(error);
 
         addMessage(
             "Sorry, something went wrong while contacting the server.",
             "bot"
         );
-
-        console.error(error);
 
     } finally {
 
@@ -75,16 +115,21 @@ async function askQuestion() {
 }
 
 
-askButton.addEventListener("click", askQuestion);
+askButton.addEventListener(
+    "click",
+    askQuestion
+);
 
 
-questionInput.addEventListener("keydown", function(event) {
+questionInput.addEventListener(
+    "keydown",
+    function(event) {
 
-    if (event.key === "Enter" && !event.shiftKey) {
+        if (event.key === "Enter" && !event.shiftKey) {
 
-        event.preventDefault();
+            event.preventDefault();
 
-        askQuestion();
+            askQuestion();
+        }
     }
-
-});
+);

@@ -15,7 +15,7 @@ __pycache__/
 data/uploads/
 
 # ChromaDB data
-data/chroma/
+data/chroma_db/
 
 # OS files
 .DS_Store
